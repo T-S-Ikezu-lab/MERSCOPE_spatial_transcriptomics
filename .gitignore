@@ -1,0 +1,31 @@
+# Local environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local analysis configuration and credentials
+configs/
+.env
+.env.*
+!.env.example
+
+# Generated analysis files
+outputs/
+logs/
+*.h5
+*.h5ad
+*.loom
+*.zarr/
+*.npy
+*.npz
+*.tif
+*.tiff
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+*~

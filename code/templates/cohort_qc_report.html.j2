@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>QC Report — {{ cohort_name }}</title>
+<style>
+  :root {
+    --bg: #fdfdfb;
+    --fg: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e2ddd6;
+    --accent: #2c3e50;
+    --accent-light: #e8edf2;
+    --table-stripe: #f7f5f1;
+    --ok: #27ae60;
+    --warn: #e67e22;
+    --fail: #c0392b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    background: var(--bg);
+    color: var(--fg);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2em 2.5em;
+    line-height: 1.65;
+  }
+  h1, h2, h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 1.7em;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.35em;
+    margin-bottom: 0.3em;
+  }
+  h2 {
+    font-size: 1.2em;
+    margin-top: 2.8em;
+    padding: 0.45em 0.9em;
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
+  h3 {
+    font-size: 1em;
+    margin-top: 1.8em;
+    color: var(--accent);
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.88em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin-bottom: 1.2em;
+  }
+  .tip {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.82em;
+    color: var(--muted);
+    background: var(--table-stripe);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5em 0.9em;
+    margin-bottom: 1.8em;
+    display: inline-block;
+  }
+
+  
+  .status { font-weight: bold; text-align: center; font-size: 1.1em; }
+  .status-ok   { color: var(--ok); }
+  .status-warn { color: var(--warn); }
+  .status-fail { color: var(--fail); }
+  .flags { font-size: 0.85em; color: var(--warn); text-align: left; max-width: 280px; }
+  .flags-fail { color: var(--fail); }
+
+  
+  .legend {
+    background: var(--table-stripe);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.8em 1.2em;
+    margin: 1em 0 1.8em;
+    font-size: 0.85em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.84em;
+    margin: 1em 0;
+  }
+  th, td {
+    padding: 7px 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--accent);
+    color: white;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92em;
+    letter-spacing: 0.02em;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  tbody tr:nth-child(even) { background: var(--table-stripe); }
+  tbody tr:hover { background: var(--accent-light); }
+
+  
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+
+  
+  .plot-grid { display: flex; flex-direction: column; gap: 1.8em; margin: 1.2em 0; }
+  .plot-row {
+    border-left: 4px solid var(--border);
+    padding-left: 1.2em;
+    padding-bottom: 0.5em;
+  }
+  .plot-row.warn { border-left-color: var(--warn); }
+  .plot-row.fail { border-left-color: var(--fail); }
+  .plot-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.4em;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    flex-wrap: wrap;
+    gap: 0.5em;
+  }
+  .plot-row-header .sid { font-weight: 700; color: var(--accent); font-size: 1.05em; }
+  .plot-row-header .summary {
+    color: var(--muted); font-size: 0.84em;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  .plot-row-flags { font-size: 0.84em; color: var(--warn); margin-bottom: 0.5em; }
+  .plot-row-flags.fail { color: var(--fail); }
+
+  
+  footer {
+    margin-top: 4em;
+    padding-top: 1.2em;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.84em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .footer-meta {
+    margin-bottom: 1.2em;
+    font-size: 0.92em;
+  }
+  .ai-note {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.88em;
+    margin-bottom: 1.5em;
+  }
+  details { margin-top: 1.5em; }
+  details summary {
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1em;
+    color: var(--accent);
+    font-weight: 600;
+    padding: 0.4em 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.8em;
+    list-style: none;
+  }
+  details summary::before { content: "▶  "; font-size: 0.75em; }
+  details[open] summary::before { content: "▼  "; }
+  pre {
+    background: #2c3e50; color: #ecf0f1; padding: 1.2em;
+    font-size: 0.78em; overflow-x: auto; border-radius: 4px; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<h1>QC Report: {{ cohort_name }}</h1>
+<div class="meta">{{ summaries|length }} samples</div>
+<div class="tip">💡 To view any image at full size, right-click it and choose <strong>Open Image in New Tab</strong> (or Open in New Window).</div>
+
+<div class="legend">
+  <strong>Status flags:</strong>
+  <span class="status-ok">✓</span> OK &nbsp;·&nbsp;
+  <span class="status-warn">⚠</span> Warning &nbsp;·&nbsp;
+  <span class="status-fail">✗</span> Fail.
+  <br><br>
+  Warnings triggered by: retention &lt; {{ flag_settings.low_retention_pct }}%
+  (fail at &lt; {{ flag_settings.very_low_retention_pct }}%),
+  MerQuaCo removal &gt; {{ flag_settings.high_merquaco_pct }}%,
+  median outlier (&gt;{{ flag_settings.mad_multiplier }} MAD from cohort),
+  &gt;1% of kept cells above {{ flag_settings.doublet_multiplier }}× cohort 99th-percentile counts (potential doublets),
+  or stale edited mask (raw MerQuaCo mask is newer than the manual edit).
+</div>
+
+<h2>1 &nbsp; Cohort Summary</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Sample</th>
+      <th>Status</th>
+      <th>Loaded</th>
+      <th>Flagged by MerQuaCo</th>
+      <th>Flagged by filtering</th>
+      <th>Remaining cells</th>
+      <th>% Retained</th>
+      <th>Median counts</th>
+      <th>Median volume</th>
+      <th>Median genes</th>
+      <th>Flags</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for s in summaries %}
+    <tr>
+      <td>{{ s.sample_id }}</td>
+      <td class="status status-{{ s.status }}">
+        {% if s.status == 'ok' %}✓{% elif s.status == 'warn' %}⚠{% else %}✗{% endif %}
+      </td>
+      <td>{{ "{:,}".format(s.n_loaded) }}</td>
+      <td>{{ "{:,}".format(s.n_merquaco_union) }}</td>
+      <td>{{ "{:,}".format(s.n_qc_removed) }}</td>
+      <td>{{ "{:,}".format(s.n_kept) }}</td>
+      <td>{{ "%.1f"|format(s.pct_retained) }}%</td>
+      <td>{{ "%.0f"|format(s.median_total_counts) }}</td>
+      <td>{{ "%.0f"|format(s.median_volume) }}</td>
+      <td>{{ "%.0f"|format(s.median_n_genes) }}</td>
+      <td class="flags {% if s.status == 'fail' %}flags-fail{% endif %}">
+        {{ s.flags|join("; ") if s.flags else "—" }}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<p style="font-size: 0.75em; color: var(--muted); font-family: 'SF Mono', monospace;">
+  Cohort medians: total_counts = {{ "%.0f"|format(cohort_stats.cohort_median_counts) }},
+  volume = {{ "%.0f"|format(cohort_stats.cohort_median_volume) }}.
+  "Flagged by MerQuaCo" and "Flagged by filtering" are computed <em>independently</em> on all
+  loaded cells — a cell can appear in both columns. "Remaining cells" reflects cells that
+  survived both filters sequentially.
+</p>
+
+<h2>2 &nbsp; Cohort Overview</h2>
+
+<h3>Cell disposition per sample</h3>
+<img src="{{ cohort_plots.stacked_bar }}" alt="Stacked bar of cell disposition">
+
+<h2>3 &nbsp; Spatial QC Plots</h2>
+
+<p style="font-size: 0.88em; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+  Per-sample spatial views: all loaded cells, cells flagged by MerQuaCo, cells flagged by QC
+  thresholds, and the final retained set. Flagging is independent — cells can appear in both
+  MerQuaCo and QC panels.
+</p>
+
+<div class="plot-grid">
+{% for s in summaries %}
+  <div class="plot-row {{ s.status if s.status != 'ok' else '' }}">
+    <div class="plot-row-header">
+      <span class="sid">
+        {{ s.sample_id }}
+        <span class="status-{{ s.status }}">
+          {% if s.status == 'ok' %}✓{% elif s.status == 'warn' %}⚠{% else %}✗{% endif %}
+        </span>
+      </span>
+      <span class="summary">
+        {{ "{:,}".format(s.n_loaded) }} → {{ "{:,}".format(s.n_kept) }} cells
+        ({{ "%.1f"|format(s.pct_retained) }}% retained)
+        {% if s.edited_mask_used %} · edited mask{% endif %}
+      </span>
+    </div>
+    {% if s.flags %}
+    <div class="plot-row-flags {% if s.status == 'fail' %}fail{% endif %}">
+      {{ s.flags|join("; ") }}
+    </div>
+    {% endif %}
+    <img src="{{ s.plot_spatial_4panel }}" alt="Spatial QC for {{ s.sample_id }}">
+  </div>
+{% endfor %}
+</div>
+
+<h2>4 &nbsp; QC Distribution Plots</h2>
+
+<p style="font-size: 0.88em; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+  Per-sample distributions of total counts, genes detected, and volume — before (blue) and
+  after (green) filtering, with the cutoff marked. Bottom row: pairwise scatter plots.
+</p>
+
+<div class="plot-grid">
+{% for s in summaries %}
+  <div class="plot-row {{ s.status if s.status != 'ok' else '' }}">
+    <div class="plot-row-header">
+      <span class="sid">
+        {{ s.sample_id }}
+        <span class="status-{{ s.status }}">
+          {% if s.status == 'ok' %}✓{% elif s.status == 'warn' %}⚠{% else %}✗{% endif %}
+        </span>
+      </span>
+      <span class="summary">
+        {{ "{:,}".format(s.n_loaded) }} → {{ "{:,}".format(s.n_kept) }} cells
+        ({{ "%.1f"|format(s.pct_retained) }}% retained)
+      </span>
+    </div>
+    <img src="{{ s.plot_qc_distributions }}" alt="QC distributions for {{ s.sample_id }}">
+  </div>
+{% endfor %}
+</div>
+
+<footer>
+
+  <div class="footer-meta">Generated {{ generated_at }}</div>
+
+  <p class="ai-note">Report layout drafted with AI assistance and reviewed by the bioinformatician responsible for this analysis.</p>
+
+  <details>
+    <summary>Configuration used</summary>
+    <pre>{{ config_yaml }}</pre>
+  </details>
+
+  <details>
+    <summary>Notes &amp; limitations</summary>
+    <p style="margin-top:0.8em; line-height:1.6;">
+      Lower-bound filters only (min_counts, min_genes, min_volume). High-count and large-volume cells
+      are flagged as potential doublets but <em>not</em> removed.
+      Both "Flagged by MerQuaCo" and "Flagged by filtering" are computed independently —
+      cells flagged by both appear in both columns. "Remaining cells" is the true bottom line after
+      both filters are applied sequentially.
+    </p>
+  </details>
+
+</footer>
+
+</body>
+</html>

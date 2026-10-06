@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pipeline Report — {{ cohort_name }}</title>
+<style>
+  :root {
+    --bg: #fdfdfb;
+    --fg: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e2ddd6;
+    --accent: #2c3e50;
+    --accent-light: #e8edf2;
+    --table-stripe: #f7f5f1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    background: var(--bg);
+    color: var(--fg);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2em 2.5em;
+    line-height: 1.65;
+  }
+  h1, h2, h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 1.7em;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.35em;
+    margin-bottom: 0.3em;
+  }
+  h2 {
+    font-size: 1.2em;
+    margin-top: 2.8em;
+    padding: 0.45em 0.9em;
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
+  h3 {
+    font-size: 1em;
+    margin-top: 1.8em;
+    color: var(--accent);
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.88em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin-bottom: 1.2em;
+  }
+  .tip {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.82em;
+    color: var(--muted);
+    background: var(--table-stripe);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5em 0.9em;
+    margin-bottom: 1.8em;
+    display: inline-block;
+  }
+
+  
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9em;
+    margin: 1.2em 0 0.5em;
+  }
+  .card {
+    flex: 1 1 150px;
+    background: var(--table-stripe);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.8em 1em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .card .label {
+    font-size: 0.72em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card .value {
+    font-size: 1.35em;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.84em;
+    margin: 1em 0;
+  }
+  th, td {
+    padding: 7px 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--accent);
+    color: white;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92em;
+    letter-spacing: 0.02em;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  tbody tr:nth-child(even) { background: var(--table-stripe); }
+  tbody tr:hover { background: var(--accent-light); }
+
+  
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin: 0.6em 0;
+  }
+  .caption {
+    font-size: 0.84em;
+    color: var(--muted);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin-bottom: 1.8em;
+  }
+  ul.downloads {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9em;
+    margin: 0.4em 0 1.8em;
+    padding-left: 1.2em;
+  }
+  ul.downloads li { margin: 0.3em 0; }
+  ul.downloads a { color: var(--accent); }
+
+  
+  footer {
+    margin-top: 4em;
+    padding-top: 1.2em;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.84em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .footer-meta { margin-bottom: 1.2em; font-size: 0.92em; }
+  .ai-note {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.88em;
+    margin-bottom: 1.5em;
+  }
+  details { margin-top: 1.5em; }
+  details summary {
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1em;
+    color: var(--accent);
+    font-weight: 600;
+    padding: 0.4em 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.8em;
+    list-style: none;
+  }
+  details summary::before { content: "▶  "; font-size: 0.75em; }
+  details[open] summary::before { content: "▼  "; }
+  pre {
+    background: #2c3e50; color: #ecf0f1; padding: 1.2em;
+    font-size: 0.78em; overflow-x: auto; border-radius: 4px; line-height: 1.5;
+  }
+
+  
+  .tabs {
+    margin-top: 1.2em;
+  }
+  .tab-buttons {
+    display: flex;
+    gap: 0.5em;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1em;
+    flex-wrap: wrap;
+  }
+  .tab-button {
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    background: #fff;
+    color: var(--accent);
+    padding: 0.45em 0.9em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  .tab-button.active {
+    background: var(--accent-light);
+    font-weight: 600;
+  }
+  .tab-panel {
+    display: none;
+  }
+  .tab-panel.active {
+    display: block;
+  }
+
+  
+  .subtabs {
+    margin-top: 1em;
+  }
+  .subtab-buttons {
+    display: flex;
+    gap: 0.4em;
+    flex-wrap: wrap;
+    margin-bottom: 1em;
+  }
+  .subtab-button {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: #fff;
+    color: var(--accent);
+    padding: 0.35em 0.8em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.85em;
+    cursor: pointer;
+  }
+  .subtab-button.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  .subtab-panel { display: none; }
+  .subtab-panel.active { display: block; }
+
+  
+  #topnav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--accent);
+    border-bottom: 3px solid var(--accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    margin: 0 -2.5em 2em;
+    padding: 0.8em 2.5em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em 0.7em;
+    align-items: center;
+  }
+  #topnav .nav-title {
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.82em;
+    margin-right: 0.6em;
+  }
+  #topnav a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.35em 0.85em;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 999px;
+    transition: background 0.15s, color 0.15s;
+  }
+  #topnav a:hover { color: var(--accent); background: #fff; border-color: #fff; }
+
+  
+  h2[id], h1[id], details.section[id] { scroll-margin-top: 4.5em; }
+
+  
+  details.section {
+    margin-top: 2.8em;
+  }
+  details.section > summary {
+    cursor: pointer;
+    list-style: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1.2em;
+    padding: 0.45em 0.9em;
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
+  details.section > summary::before { content: "▶  "; font-size: 0.7em; }
+  details.section[open] > summary::before { content: "▼  "; }
+  details.section > summary .hint {
+    font-weight: 400;
+    font-size: 0.72em;
+    color: var(--muted);
+    margin-left: 0.6em;
+  }
+
+  
+  #to-top {
+    position: fixed;
+    bottom: 1.4em;
+    right: 1.4em;
+    z-index: 100;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 2.6em;
+    height: 2.6em;
+    font-size: 1em;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  #to-top.visible { opacity: 0.85; pointer-events: auto; }
+  #to-top:hover { opacity: 1; }
+</style>
+</head>
+<body>
+
+<h1>Pipeline Report: {{ cohort_name }}</h1>
+<div class="meta">{{ "{:,}".format(n_cells) }} cells &times; {{ "{:,}".format(n_genes) }} genes · {{ n_samples }} samples</div>
+<div class="tip">💡 To view any image at full size, right-click it and choose <strong>Open Image in New Tab</strong> (or Open in New Window).</div>
+
+<nav id="topnav">
+  <span class="nav-title">Jump to:</span>
+  <a href="#sec-samples">Samples</a>
+  <a href="#sec-norm">Normalization</a>
+  <a href="#sec-pseudobulk">Pseudobulk PCA</a>
+  <a href="#sec-clustering">Clustering</a>
+  <a href="#sec-celltype">Cell types</a>
+</nav>
+
+<h2 id="sec-params">1 &nbsp; Analysis Parameters</h2>
+
+<div class="cards">
+  <div class="card"><div class="label">Normalization</div><div class="value">{{ norm_method }}</div></div>
+  <div class="card"><div class="label">HVGs</div><div class="value">{{ "{:,}".format(n_hvg) }}</div></div>
+  <div class="card"><div class="label">PCs used</div><div class="value">{{ n_pcs }}</div></div>
+  <div class="card"><div class="label">Neighbors</div><div class="value">{{ n_neighbors }}</div></div>
+  <div class="card"><div class="label">Leiden res.</div><div class="value">{{ leiden_resolution }}</div></div>
+  <div class="card"><div class="label">Clusters</div><div class="value">{{ n_clusters }}</div></div>
+</div>
+
+<details class="section" id="sec-samples" open>
+<summary>2 &nbsp; Per-Sample Summary</summary>
+
+<table>
+  <thead>
+    <tr>
+      <th>Sample</th>
+      <th>Treatment</th>
+      <th>Cells</th>
+      <th>% of total</th>
+      <th>Median transcripts</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for s in samples %}
+    <tr>
+      <td>{{ s.sample_id }}</td>
+      <td>{{ s.treatment }}</td>
+      <td>{{ "{:,}".format(s.n_cells) }}</td>
+      <td>{{ "%.1f"|format(s.pct_total) }}%</td>
+      <td>{{ "%.0f"|format(s.median_transcripts) }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h3>Cell counts and transcript distribution</h3>
+<img src="{{ plots.per_sample_comparison }}" alt="Per-sample comparison" loading="lazy">
+<div class="caption">Left: cells retained per sample after filtering. Right: transcripts per cell (log scale). <em>Reused from step 03.</em></div>
+</details>
+
+<details class="section" id="sec-norm">
+<summary>3 &nbsp; Normalization <span class="hint">(step 03 QC — click to expand)</span></summary>
+
+<p style="font-size: 0.88em; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+  Distributions of per-cell totals and non-zero expression values, comparing raw counts to
+  the {{ norm_method }} normalization used downstream.
+</p>
+<img src="{{ plots.normalization_distributions }}" alt="Normalization distributions" loading="lazy">
+<div class="caption">Raw counts vs. normalized expression: per-cell totals (left) and non-zero expression values (right). <em>Reused from step 03.</em></div>
+</details>
+
+<details class="section" id="sec-pseudobulk" open>
+<summary>4 &nbsp; Sample-level Pseudobulk PCA</summary>
+
+<p style="font-size: 0.88em; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+  Raw counts summed across all cells within each sample (one point per sample), CPM + log1p
+  normalized, then PCA on the top {{ n_top_genes }} variable genes. Shows how whole samples
+  cluster relative to one another — useful for spotting treatment- or batch-driven structure.
+</p>
+
+<h3>By treatment group</h3>
+<img src="{{ plots.pseudobulk_pca_treatment }}" alt="Pseudobulk PCA by treatment" loading="lazy">
+<div class="caption">
+  Sample-level pseudobulk PCA (PC1 vs PC2), colored by treatment group.
+</div>
+
+<h3>By experiment batch</h3>
+<img src="{{ plots.pseudobulk_pca_experiment }}" alt="Pseudobulk PCA by experiment batch" loading="lazy">
+<div class="caption">
+  Same embedding, colored by the configured <code>experiment</code> sample covariate.
+  Samples without a configured value are labeled <code>unknown</code>.
+</div>
+</details>
+
+<details class="section" id="sec-clustering">
+<summary>5 &nbsp; Clustering <span class="hint">(step 03 overview — click to expand)</span></summary>
+
+<h3>Leiden resolution</h3>
+<img src="{{ plots.leiden_resolution_sweep }}" alt="Leiden resolution sweep" loading="lazy">
+<div class="caption">Leiden clustering on the UMAP embedding. Final resolution: {{ leiden_resolution }} ({{ n_clusters }} clusters). <em>Reused from step 03.</em></div>
+
+<h3>UMAP overview</h3>
+<img src="{{ plots.umap_overview }}" alt="UMAP overview" loading="lazy">
+<div class="caption">UMAP colored by Leiden cluster, sample, total transcripts, and genes per cell. <em>Reused from step 03.</em></div>
+</details>
+
+<h2 id="sec-celltype">6 &nbsp; Cell-type Distribution by Group</h2>
+
+<p style="font-size: 0.88em; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+  Cell types compared across the {{ groups|length }} treatment groups
+  ({{ groups|join(", ") }}). Each group pools all of its samples. This section asks whether the
+  cell-type composition differs by treatment at multiple annotation resolutions, for the
+  whole dataset and&mdash;when configured&mdash;for the supplied region JSON inputs.
+</p>
+
+{% if not view_keys %}
+<div class="tip">No supported annotation columns were available, so cell-type summaries were not generated.</div>
+{% else %}
+<div class="tabs">
+  <div class="tab-buttons">
+    {% for key in view_keys %}
+      <button class="tab-button{% if loop.first %} active{% endif %}" data-tab="tab-{{ key }}">{{ celltype_results[key].label }}</button>
+    {% endfor %}
+  </div>
+
+  {% for key in view_keys %}
+    {% set r = celltype_results[key] %}
+    <div id="tab-{{ key }}" class="tab-panel{% if loop.first %} active{% endif %}">
+
+      <div class="subtabs">
+        <div class="subtab-buttons">
+          <button class="subtab-button active" data-subtab="sub-{{ key }}-comp">Composition</button>
+          <button class="subtab-button" data-subtab="sub-{{ key }}-umap">UMAP</button>
+          <button class="subtab-button" data-subtab="sub-{{ key }}-spatial">Spatial</button>
+          {% if r.stats_plots %}<button class="subtab-button" data-subtab="sub-{{ key }}-stats">Statistics</button>{% endif %}
+          {% if r.csvs %}<button class="subtab-button" data-subtab="sub-{{ key }}-data">Data</button>{% endif %}
+        </div>
+
+        <div id="sub-{{ key }}-comp" class="subtab-panel active">
+          <h3>Composition comparison — {{ r.label }}</h3>
+          <img src="{{ r.plots.composition }}" alt="Cell-type composition by group — {{ r.label }}" loading="lazy">
+          <div class="caption">
+            Cell-type proportions per group (100% stacked bars), using <code>{{ r.column }}</code>
+            across {{ r.region_label|lower }} cells ({{ "{:,}".format(r.n_cells) }} total).
+            Cell counts per group:
+            {% for g in groups %}<strong>{{ g }}</strong> = {{ "{:,}".format(r.group_cell_counts[g]) }}{% if not loop.last %}, {% endif %}{% endfor %}.
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Cell type</th>
+                {% for g in groups %}<th>{{ g }} (%)</th>{% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+            {% for row in r.composition_table %}
+              <tr>
+                <td>{{ row.cell_type }}</td>
+                {% for g in groups %}<td>{{ "%.2f"|format(row[g]) }}</td>{% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div id="sub-{{ key }}-umap" class="subtab-panel">
+          <h3>UMAP &mdash; all cells &mdash; {{ r.label }}</h3>
+          <img src="{{ r.plots.umap_overall }}" alt="Overall UMAP — {{ r.label }}" loading="lazy">
+          <div class="caption">
+            All groups pooled, colored by cell type &mdash; the reference view for the per-group
+            panels below.
+            <br><a href="{{ r.plots.umap_overall | replace('.png', '.svg') }}">Download SVG</a>
+          </div>
+
+          <h3>UMAP by group &mdash; {{ r.label }}</h3>
+          <img src="{{ r.plots.umap_by_group }}" alt="UMAP by group — {{ r.label }}" loading="lazy">
+          <div class="caption">
+            One panel per group. That group's cells are colored by cell type; all other
+            {{ r.region_label|lower }} cells are shown in light grey for reference on the shared embedding.
+            <br><a href="{{ r.plots.umap_by_group | replace('.png', '.svg') }}">Download SVG</a>
+          </div>
+
+          <h3>UMAP by group (re-fitted per group) &mdash; {{ r.label }}</h3>
+          {% if r.plots.umap_by_group_refit %}
+          <img src="{{ r.plots.umap_by_group_refit }}" alt="UMAP by group refit — {{ r.label }}" loading="lazy">
+          <div class="caption">
+            Separate UMAP fit within each treatment group. Use this for within-group structure;
+            coordinates are not directly comparable across groups.
+            {% if r.region_key != "whole_brain" %}
+            The embedding is fit on all of that group's cells and then restricted to
+            {{ r.region_label|lower }} cells, which also drops cells outside the per-group
+            subsample used for the fit.
+            {% endif %}
+            <br><a href="{{ r.plots.umap_by_group_refit | replace('.png', '.svg') }}">Download SVG</a>
+          </div>
+          {% endif %}
+        </div>
+
+        <div id="sub-{{ key }}-spatial" class="subtab-panel">
+          <h3>Spatial distribution by group — {{ r.label }}</h3>
+          {% for g in groups %}
+          <h4 style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: var(--accent); margin-top: 1.4em;">{{ g }}</h4>
+          <img src="{{ r.plots.spatial_by_group[g] }}" alt="Spatial cell types — {{ g }} — {{ r.label }}" loading="lazy">
+          <div class="caption">
+            Spatial distribution of {{ r.region_label|lower }} cell types for each
+            <strong>{{ g }}</strong> sample (one panel per sample).
+            <br><a href="{{ r.plots.spatial_by_group[g] | replace('.png', '.svg') }}">Download SVG</a>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if r.stats_plots %}
+        <div id="sub-{{ key }}-stats" class="subtab-panel">
+          <h3>Proportion statistics — {{ r.label }}</h3>
+          <div class="caption">
+            Pairwise Welch t-tests on arcsine-sqrt transformed <strong>per-sample</strong> proportions
+            within {{ r.region_label|lower }} cells (one observation = one biological sample),
+            BH-FDR corrected across cell types within each
+            comparison. <code>q</code> = FDR-adjusted p-value (<code>*</code> q&lt;0.05,
+            <code>**</code> q&lt;0.01, <code>***</code> q&lt;0.001). With few samples per group, treat as exploratory.
+          </div>
+          {% for sp in r.stats_plots %}
+          <h4 style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: var(--accent); margin-top: 1.4em;">{{ sp.title }}</h4>
+          <img src="{{ sp.path }}" alt="Proportion statistics — {{ sp.title }} — {{ r.label }}" loading="lazy">
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if r.csvs %}
+        <div id="sub-{{ key }}-data" class="subtab-panel">
+          <h3>Data tables &mdash; {{ r.label }}</h3>
+          <ul class="downloads">
+            {% if r.csvs.raw_counts %}<li><a href="{{ r.csvs.raw_counts }}" download>Cell counts per sample &times; cell type &mdash; CSV</a></li>{% endif %}
+            {% if r.csvs.proportions_by_group %}<li><a href="{{ r.csvs.proportions_by_group }}" download>Proportions by group (%) &mdash; CSV</a></li>{% endif %}
+            {% if r.csvs.per_sample %}<li><a href="{{ r.csvs.per_sample }}" download>Per-sample proportions (%) &mdash; CSV</a></li>{% endif %}
+            {% if r.csvs.pairwise_stats %}<li><a href="{{ r.csvs.pairwise_stats }}" download>Pairwise Welch t-test statistics &mdash; CSV</a></li>{% endif %}
+          </ul>
+          <div class="caption">All tables above are restricted to {{ r.region_label|lower }} cells.</div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<footer>
+
+  <div class="footer-meta">Generated {{ generated_at }}</div>
+
+  <p class="ai-note">Report layout drafted with AI assistance and reviewed by the bioinformatician responsible for this analysis.</p>
+
+  <details>
+    <summary>Configuration used</summary>
+    <pre>{{ config_yaml }}</pre>
+  </details>
+
+</footer>
+
+<button id="to-top" aria-label="Back to top" title="Back to top">↑</button>
+
+<script>
+  (function () {
+
+    document.querySelectorAll(".tab-button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const container = btn.closest(".tabs");
+        const target = btn.getAttribute("data-tab");
+        container.querySelectorAll(".tab-button").forEach((b) => b.classList.remove("active"));
+        container.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        const panel = document.getElementById(target);
+        if (panel) panel.classList.add("active");
+      });
+    });
+
+
+    document.querySelectorAll(".subtab-button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const container = btn.closest(".subtabs");
+        const target = btn.getAttribute("data-subtab");
+        container.querySelectorAll(".subtab-button").forEach((b) => b.classList.remove("active"));
+        container.querySelectorAll(".subtab-panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        const panel = document.getElementById(target);
+        if (panel) panel.classList.add("active");
+      });
+    });
+
+
+    const toTop = document.getElementById("to-top");
+    if (toTop) {
+      window.addEventListener("scroll", () => {
+        toTop.classList.toggle("visible", window.scrollY > 600);
+      });
+      toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    }
+  })();
+</script>
+
+</body>
+</html>

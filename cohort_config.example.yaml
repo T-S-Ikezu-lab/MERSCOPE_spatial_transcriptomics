@@ -1,0 +1,76 @@
+# Copy this file outside the repository and edit it.
+cohort_name: Example MERSCOPE cohort
+sample_sheet: cohort_samples.csv
+
+paths:
+  project_root: "/path/to/project"
+  sample_data_dir: "{project_root}/data/resegmentation/{sample_id}"
+  dapi_dir: "{project_root}/data/raw/{sample_id}"
+  output_dir: "{project_root}/outputs"
+  external_dir: "{project_root}/data/external"
+
+comparisons:
+  - ["treatment", "control"]
+
+filter_params:
+  min_counts: 10
+  min_genes: 0
+  min_volume: 100
+
+preprocessing:
+  cell_by_gene_filename: "cell_by_gene.csv"
+  cell_metadata_filename: "cell_metadata_reseg.csv"
+  detected_transcripts_filename: "detected_transcripts_reseg.csv"
+  dapi_filename: "mosaic_DAPI_z3.tif"
+  codebook_path: "{external_dir}/codebook.csv"
+  blank_gene_prefix: "Blank"
+  ilastik_path: "/path/to/ilastik/run_ilastik.sh"
+  ventricle_genes:
+    - "Car12_mouse"
+    - "Vcan_mouse"
+  run_pixel_classification: true
+  run_dropout: true
+
+# Optional label-transfer configuration.
+label_transfer:
+  mapper_json_path: "{external_dir}/mapmycells/mapmycells_result.json"
+  confidence_threshold: 0.4
+  coarse_mapping_method: none
+  # coarse_mapping_xlsx: "class_mapping.xlsx"
+
+# Optional regions; see README Inputs for polygon JSON format and recursive discovery.
+regions:
+  name: region_of_interest
+  files:
+    - "{project_root}/inputs/regions"
+
+de_params:
+  alpha: 0.05
+  lfc: 0.25
+  significance_metric: fdr
+  # cell_types: ["Type A", "Type B"]
+
+reporting:
+  group_order:
+    - control
+    - treatment
+  visualizations:
+    n_pcs: 20
+    n_neighbors: 15
+    leiden_resolution: 0.5
+    pseudobulk_top_genes: 500
+    region_qc_min_cell_type_cells: 10
+  palettes:
+    groups:
+      control: "#4C78A8"
+      treatment: "#E45756"
+    cell_type_fixed: {}
+    cell_type_cycle:
+      - "#4C78A8"
+      - "#F58518"
+      - "#E45756"
+      - "#72B7B2"
+      - "#54A24B"
+      - "#EECA3B"
+      - "#B279A2"
+      - "#FF9DA6"
